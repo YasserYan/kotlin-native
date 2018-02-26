@@ -93,12 +93,8 @@ internal fun StaticData.createKotlinObject(type: IrClass, body: ConstValue): Con
     return createRef(objHeaderPtr)
 }
 
-internal fun StaticData.createKotlinObjectInplace(type: KotlinType, body: ConstValue): ConstValue {
-    val typeInfo = type.typeInfoPtr!!
-    val compositeType = structType(runtime.objHeaderType, body.llvmType)
-    val objHeader = objHeader(typeInfo)
-    return Struct(compositeType, objHeader, body)
-}
+internal fun StaticData.createInitializer(type: KotlinType, body: ConstValue): ConstValue =
+        Struct(objHeader(type.typeInfoPtr!!), body)
 
 private fun StaticData.getArrayListClass(): ClassDescriptor {
     val module = context.irModule!!.descriptor

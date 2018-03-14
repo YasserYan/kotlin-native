@@ -57,8 +57,8 @@ bool isInRange(T value, T from, T to) {
 
 template<class T>
 const ObjHeader *getCachedBox(T value, const KBox<T> cache[], T from) {
-  uint32_t idx = value - from;
-  return &cache[idx].header;
+  uint32_t index = value - from;
+  return &cache[index].header;
 }
 
 } // namespace
@@ -86,7 +86,7 @@ bool inLongBoxCache(KLong value) {
 }
 
 const ObjHeader* getCachedByteBox(KByte value) {
-  // Remember that KByte can't can't handle values >= 127
+  // Remember that KByte can't handle values >= 127
   // so it can't be used as indexing type.
   return getCachedBox(value, BYTE_CACHE, BYTE_RANGE_FROM);
 }

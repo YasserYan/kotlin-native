@@ -78,7 +78,7 @@ internal fun initializeCachedBoxes(context: Context) {
  */
 private fun ValueType.initCache(context: Context, cacheName: String,
                                 rangeStartName: String, rangeEndName: String) {
-    val kotlinType = context.ir.symbols.boxClasses[this]!!.owner.defaultType
+    val kotlinType = context.ir.symbols.boxClasses[this]!!.owner
     val (start, end) = context.config.target.getBoxCacheRange(this)
     // Constancy of these globals allows LLVM's constant propagation and DCE
     // to remove fast path of boxing function in case of empty range.

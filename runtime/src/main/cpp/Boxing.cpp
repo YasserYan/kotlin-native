@@ -21,11 +21,14 @@
 
 template<class T>
 struct KBox {
-  const ObjHeader header;
+  ObjHeader header;
   const T value;
 };
 
 // Keep naming of these in sync with codegen part.
+extern const KBoolean BOOLEAN_RANGE_FROM;
+extern const KBoolean BOOLEAN_RANGE_TO;
+
 extern const KByte BYTE_RANGE_FROM;
 extern const KByte BYTE_RANGE_TO;
 
@@ -41,22 +44,23 @@ extern const KInt INT_RANGE_TO;
 extern const KLong LONG_RANGE_FROM;
 extern const KLong LONG_RANGE_TO;
 
-extern const KBox<KByte> BYTE_CACHE[];
-extern const KBox<KChar> CHAR_CACHE[];
-extern const KBox<KShort> SHORT_CACHE[];
-extern const KBox<KInt> INT_CACHE[];
-extern const KBox<KLong> LONG_CACHE[];
+extern KBox<KBoolean> BOOLEAN_CACHE[];
+extern KBox<KByte> BYTE_CACHE[];
+extern KBox<KChar> CHAR_CACHE[];
+extern KBox<KShort> SHORT_CACHE[];
+extern KBox<KInt> INT_CACHE[];
+extern KBox<KLong> LONG_CACHE[];
 
 namespace {
 
 template<class T>
-bool isInRange(T value, T from, T to) {
+inline bool isInRange(T value, T from, T to) {
   return value >= from && value <= to;
 }
 
 
 template<class T>
-const ObjHeader *getCachedBox(T value, const KBox<T> cache[], T from) {
+OBJ_GETTER(getCachedBox, T value, KBox<T> cache[], T from) {
   uint32_t index = value - from;
   return &cache[index].header;
 }
@@ -85,26 +89,30 @@ bool inLongBoxCache(KLong value) {
   return isInRange(value, LONG_RANGE_FROM, LONG_RANGE_TO);
 }
 
-const ObjHeader* getCachedByteBox(KByte value) {
+OBJ_GETTER(getCachedBooleanBox, KBoolean value) {
+  RETURN_RESULT_OF(getCachedBox, value, BOOLEAN_CACHE, BOOLEAN_RANGE_FROM);
+}
+
+OBJ_GETTER(getCachedByteBox, KByte value) {
   // Remember that KByte can't handle values >= 127
   // so it can't be used as indexing type.
-  return getCachedBox(value, BYTE_CACHE, BYTE_RANGE_FROM);
+  RETURN_RESULT_OF(getCachedBox, value, BYTE_CACHE, BYTE_RANGE_FROM);
 }
 
-const ObjHeader* getCachedCharBox(KChar value) {
-  return getCachedBox(value, CHAR_CACHE, CHAR_RANGE_FROM);
+OBJ_GETTER(getCachedCharBox, KChar value) {
+  RETURN_RESULT_OF(getCachedBox, value, CHAR_CACHE, CHAR_RANGE_FROM);
 }
 
-const ObjHeader* getCachedShortBox(KShort value) {
-  return getCachedBox(value, SHORT_CACHE, SHORT_RANGE_FROM);
+OBJ_GETTER(getCachedShortBox, KShort value) {
+  RETURN_RESULT_OF(getCachedBox, value, SHORT_CACHE, SHORT_RANGE_FROM);
 }
 
-const ObjHeader* getCachedIntBox(KInt value) {
-  return getCachedBox(value, INT_CACHE, INT_RANGE_FROM);
+OBJ_GETTER(getCachedIntBox, KInt value) {
+  RETURN_RESULT_OF(getCachedBox, value, INT_CACHE, INT_RANGE_FROM);
 }
 
-const ObjHeader* getCachedLongBox(KLong value) {
-  return getCachedBox(value, LONG_CACHE, LONG_RANGE_TO);
+OBJ_GETTER(getCachedLongBox, KLong value) {
+  RETURN_RESULT_OF(getCachedBox, value, LONG_CACHE, LONG_RANGE_TO);
 }
 
 }

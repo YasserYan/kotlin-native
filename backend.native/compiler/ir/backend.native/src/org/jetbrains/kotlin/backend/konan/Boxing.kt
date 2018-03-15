@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.backend.konan
 
+import kotlinx.cinterop.toByte
 import llvm.*
 import org.jetbrains.kotlin.backend.konan.ir.KonanSymbols
 import org.jetbrains.kotlin.backend.konan.llvm.*
@@ -62,7 +63,7 @@ internal fun KonanSymbols.getUnboxFunction(valueType: ValueType): IrSimpleFuncti
  */
 internal fun initializeCachedBoxes(context: Context) {
     if (context.config.produce.isNativeBinary) {
-        val cachedTypes = listOf(ValueType.BYTE, ValueType.CHAR,
+        val cachedTypes = listOf(ValueType.BOOLEAN, ValueType.BYTE, ValueType.CHAR,
                 ValueType.SHORT, ValueType.INT, ValueType.LONG)
         cachedTypes.forEach { valueType ->
             val cacheName = "${valueType.name}_CACHE"
@@ -94,12 +95,13 @@ private fun ValueType.initCache(context: Context, cacheName: String,
 
 private fun ValueType.createConstant(value: Int) =
     constValue(when (this) {
-        ValueType.BYTE  -> LLVMConstInt(LLVMInt8Type(),  value.toByte().toLong(),  1)!!
-        ValueType.CHAR  -> LLVMConstInt(LLVMInt16Type(), value.toChar().toLong(),  0)!!
-        ValueType.SHORT -> LLVMConstInt(LLVMInt16Type(), value.toShort().toLong(), 1)!!
-        ValueType.INT   -> LLVMConstInt(LLVMInt32Type(), value.toLong(),   1)!!
-        ValueType.LONG  -> LLVMConstInt(LLVMInt64Type(), value.toLong(),             1)!!
-        else            -> error("Cannot box value of type $this")
+        ValueType.BOOLEAN   -> LLVMConstInt(LLVMInt1Type(),  (value > 0).toByte().toLong(), 1)!!
+        ValueType.BYTE      -> LLVMConstInt(LLVMInt8Type(),  value.toByte().toLong(),  1)!!
+        ValueType.CHAR      -> LLVMConstInt(LLVMInt16Type(), value.toChar().toLong(),  0)!!
+        ValueType.SHORT     -> LLVMConstInt(LLVMInt16Type(), value.toShort().toLong(), 1)!!
+        ValueType.INT       -> LLVMConstInt(LLVMInt32Type(), value.toLong(),   1)!!
+        ValueType.LONG      -> LLVMConstInt(LLVMInt64Type(), value.toLong(),             1)!!
+        else                -> error("Cannot box value of type $this")
     })
 
 // When start is greater than end then `inRange` check is always false
@@ -108,6 +110,7 @@ private val emptyRange = 1 to 0
 
 // Memory usage is around 20kb.
 private val defaultCacheRanges = mapOf(
+        ValueType.BOOLEAN to (0 to 1),
         ValueType.BYTE  to (-128 to 127),
         ValueType.SHORT to (-128 to 127),
         ValueType.CHAR  to (0 to 255),

@@ -45,11 +45,11 @@ extern const KLong LONG_RANGE_FROM;
 extern const KLong LONG_RANGE_TO;
 
 extern KBox<KBoolean> BOOLEAN_CACHE[];
-extern KBox<KByte> BYTE_CACHE[];
-extern KBox<KChar> CHAR_CACHE[];
-extern KBox<KShort> SHORT_CACHE[];
-extern KBox<KInt> INT_CACHE[];
-extern KBox<KLong> LONG_CACHE[];
+extern KBox<KByte>    BYTE_CACHE[];
+extern KBox<KChar>    CHAR_CACHE[];
+extern KBox<KShort>   SHORT_CACHE[];
+extern KBox<KInt>     INT_CACHE[];
+extern KBox<KLong>    LONG_CACHE[];
 
 namespace {
 
@@ -58,11 +58,10 @@ inline bool isInRange(T value, T from, T to) {
   return value >= from && value <= to;
 }
 
-
 template<class T>
 OBJ_GETTER(getCachedBox, T value, KBox<T> cache[], T from) {
-  uint32_t index = value - from;
-  return &cache[index].header;
+  uint64_t index = value - from;
+  RETURN_OBJ(&cache[index].header);
 }
 
 } // namespace
@@ -112,7 +111,7 @@ OBJ_GETTER(getCachedIntBox, KInt value) {
 }
 
 OBJ_GETTER(getCachedLongBox, KLong value) {
-  RETURN_RESULT_OF(getCachedBox, value, LONG_CACHE, LONG_RANGE_TO);
+  RETURN_RESULT_OF(getCachedBox, value, LONG_CACHE, LONG_RANGE_FROM);
 }
 
 }

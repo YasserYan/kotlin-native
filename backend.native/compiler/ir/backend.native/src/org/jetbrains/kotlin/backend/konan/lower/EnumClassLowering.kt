@@ -372,7 +372,6 @@ internal class EnumClassLowering(val context: Context) : ClassLoweringPass {
 
         private val arrayGetSymbol = context.ir.symbols.array.functions.single { it.descriptor.name == Name.identifier("get") }
 
-        private val genericFreezeSymbol = context.ir.symbols.freeze
         private val arrayType = context.builtIns.getArrayType(Variance.INVARIANT, irClass.defaultType)
 
         private fun createValuesPropertyInitializer(enumEntries: List<IrEnumEntry>): IrAnonymousInitializerImpl {
@@ -398,7 +397,7 @@ internal class EnumClassLowering(val context: Context) : ClassLoweringPass {
                                     putValueArgument(1, initializer)
                                 }
                             }
-                    +irCall(genericFreezeSymbol, listOf(arrayType)).apply {
+                    +irCall(this@EnumClassLowering.context.ir.symbols.freeze, listOf(arrayType)).apply {
                         extensionReceiver = irGet(instances.symbol)
                     }
                 }

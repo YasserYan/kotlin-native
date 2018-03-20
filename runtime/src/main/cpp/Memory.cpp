@@ -1092,6 +1092,38 @@ OBJ_GETTER(InitInstance,
 #endif
 }
 
+OBJ_GETTER(InitSharedInstance,
+    ObjHeader** location, const TypeInfo* type_info, void (*ctor)(ObjHeader*)) {
+  ObjHeader* initializing = reinterpret_cast<ObjHeader*>(1);
+  ObjHeader* value;
+
+  // Spin lock.
+  while ((value = __sync_val_compare_and_swap(location, nullptr, initializing)) == initializing);
+  if (value != nullptr) {
+    // OK'ish, inited by someone else.
+    RETURN_OBJ(value);
+  }
+
+  ObjHeader* object = AllocInstance(type_info, OBJ_RESULT);
+  MEMORY_LOG("Calling UpdateRef from InitInstance\n")
+  UpdateRef(location, object);
+  __sync_synchronize();
+#if KONAN_NO_EXCEPTIONS
+  ctor(object);
+  return object;
+#else
+  try {
+    ctor(object);
+    return object;
+  } catch (...) {
+    UpdateRef(OBJ_RESULT, nullptr);
+    UpdateRef(location, nullptr);
+    __sync_synchronize();
+    throw;
+  }
+#endif
+}
+
 bool HasReservedObjectTail(ObjHeader* obj) {
   return kObjectReservedTailSize != 0 && !obj->permanent();
 }
@@ -1140,7 +1172,7 @@ void UpdateRef(ObjHeader** location, const ObjHeader* object) {
       AddRef(object);
     }
     *const_cast<const ObjHeader**>(location) = object;
-    if (old != nullptr) {
+    if (reinterpret_cast<uintptr_t>(old) > 1) {
       ReleaseRef(old);
     }
   }
